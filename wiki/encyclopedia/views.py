@@ -7,6 +7,7 @@ from . import util
 
 markdowner = Markdown()
 
+
 def index(request):
     return render(request, "encyclopedia/index.html", {
         "entries": util.list_entries()
@@ -22,7 +23,9 @@ def entry(request, title):
             'content': markdowner.convert(entry)
         })
     else:
-        return render(request, 'encyclopedia/error.html')
+        return render(request, 'encyclopedia/error.html', {
+            'message': 'Requested page doesn\'t exist'
+        })
 
 
 def search(request):
@@ -39,13 +42,13 @@ def search(request):
         if query.lower() in ent.lower():
             matches.append(ent)
 
-    if not matches:
-        return render(request, 'encyclopedia/error.html', {
-            'message': 'Page doesn\'t exist'
-        })
-    else:
+    if matches:
         return render(request, 'encyclopedia/search.html', {
             'matches': matches
+        })
+    else:
+        return render(request, 'encyclopedia/error.html', {
+            'message': 'No matches found'
         })
 
 
@@ -62,8 +65,10 @@ def new(request):
         else:
             util.save_entry(title, content)
             return redirect('entry', title=title)
+
     else:
         return render(request, 'encyclopedia/new.html')
+
 
 def edit(request, title):
     if request.method == 'POST':
@@ -75,6 +80,7 @@ def edit(request, title):
             'title': title,
             'content': util.get_entry(title)
         })
+
 
 def random(request):
     return redirect('entry', title=choice(util.list_entries()))
